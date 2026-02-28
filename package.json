@@ -1,0 +1,16 @@
+{
+  "name": "platform-game",
+  "version": "1.0.0",
+  "description": "Phaser.js 平台跳跃游戏",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8000",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": ["phaser", "game", "platformer"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "phaser": "^3.60.0"
+  }
+}
