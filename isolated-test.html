@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>隔离测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+        #test-container {
+            text-align: center;
+        }
+        h1 { color: #4CAF50; margin-bottom: 30px; }
+        #status { color: #fff; margin: 20px 0; }
+        button {
+            padding: 20px 40px;
+            font-size: 24px;
+            background: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover { background: #45a049; }
+        #console-log {
+            margin-top: 30px;
+            background: #111;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 5px;
+        }
+        .log-error { color: #f44336; }
+        .log-warn { color: #ff9800; }
+        .log-info { color: #2196f3; }
+        .log-success { color: #4CAF50; }
+    </style>
+</head>
+<body>
+    <div id="test-container">
+        <h1>🧪 隔离游戏测试</h1>
+
+        <div id="status">等待操作...</div>
+
+        <button id="btn1" onclick="test1()">测试1: 简单按钮</button>
+        <button id="btn2" onclick="test2()">测试2: 场景切换</button>
+        <button id="btn3" onclick="test3()">测试3: 加载实际游戏</button>
+        <button id="btn4" onclick="test4()">测试4: 清除控制台</button>
+
+        <div id="console-log">
+            <div class="log-entry log-info">控制台日志将显示在这里...</div>
+        </div>
+    </div>
+
+    <script>
+        // 重写console方法捕获所有输出
+        const originalConsole = {
+            log: console.log,
+            warn: console.warn,
+            error: console.error,
+            info: console.info
+        };
+
+        const logDiv = document.getElementById('console-log');
+
+        function addLog(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            // 同时输出到原始console
+            originalConsole.log(message);
+        }
+
+        // 捕获所有console输出
+        console.log = function(msg) { addLog(msg, 'info'); };
+        console.warn = function(msg) { addLog(msg, 'warn'); };
+        console.error = function(msg) { addLog(msg, 'error'); };
+        console.info = function(msg) { addLog(msg, 'info'); };
+
+        // 捕获全局错误
+        window.onerror = function(msg, source, lineno, colno, error) {
+            addLog(`错误: ${msg} 在 ${source}:${lineno}`, 'error');
+            addLog(`详情: ${error}`, 'error');
+            alert(`JavaScript错误: ${msg}\n位置: ${source}:${lineno}`);
+        };
+
+        window.addEventListener('unhandledrejection', function(event) {
+            addLog(`未处理的Promise: ${event.reason}`, 'error');
+        });
+
+        addLog('隔离测试页面已加载', 'success');
+        document.getElementById('status').textContent = '准备就绪';
+
+        function test1() {
+            addLog('--- 测试1开始 ---', 'info');
+            const btn = document.getElementById('btn1');
+            btn.textContent = '点击中...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                addLog('测试1完成！', 'success');
+                btn.textContent = '测试1: 简单按钮 ✓';
+                btn.disabled = false;
+            }, 500);
+        }
+
+        function test2() {
+            addLog('--- 测试2开始 ---', 'info');
+            const btn = document.getElementById('btn2');
+            btn.textContent = '点击中...';
+            btn.disabled = true;
+
+            // 测试加载一个模块
+            import('./js/scenes/MenuScene.js')
+                .then(module => {
+                    addLog('MenuScene.js 模块加载成功', 'success');
+                    btn.textContent = '测试2: 场景切换 ✓';
+                    btn.disabled = false;
+                })
+                .catch(error => {
+                    addLog(`模块加载失败: ${error.message}`, 'error');
+                    btn.textContent = '测试2: 场景切换 ✗';
+                    btn.disabled = false;
+                });
+        }
+
+        function test3() {
+            addLog('--- 测试3开始 ---', 'info');
+            const btn = document.getElementById('btn3');
+            btn.textContent = '加载中...';
+            btn.disabled = true;
+
+            window.location.href = 'index.html';
+        }
+
+        function test4() {
+            addLog('--- 测试4开始 ---', 'info');
+            const btn = document.getElementById('btn4');
+            btn.textContent = '清除中...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                logDiv.innerHTML = '<div class="log-entry log-info">控制台已清除</div>';
+                btn.textContent = '测试4: 清除控制台 ✓';
+                btn.disabled = false;
+            }, 300);
+        }
+
+        // 页面加载完成
+        addLog('隔离测试就绪，可以进行测试', 'success');
+    </script>
+</body>
+</html>
