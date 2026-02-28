@@ -6,7 +6,11 @@ export default class MenuScene extends Phaser.Scene {
     }
 
     create() {
+        window.captureGameLog('info', 'MenuScene.create() 开始...');
+
         const { width, height } = this.scale;
+
+        window.captureGameLog('info', `画布尺寸: ${width}x${height}`);
 
         this.add.text(width / 2, height / 4, '平台跳跃游戏', {
             fontSize: '48px',
@@ -21,7 +25,11 @@ export default class MenuScene extends Phaser.Scene {
             padding: { x: 20, y: 10 }
         }).setOrigin(0.5).setInteractive();
 
+        window.captureGameLog('info', '创建新游戏按钮...');
+
         startButton.on('pointerdown', () => {
+            window.captureGameLog('info', '点击新游戏按钮！');
+            window.captureGameLog('info', '准备切换到GameScene...');
             this.scene.start('GameScene');
         });
 

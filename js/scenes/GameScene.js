@@ -22,36 +22,66 @@ export default class GameScene extends Phaser.Scene {
     }
 
     init(data) {
+        window.captureGameLog('info', 'GameScene.init() 开始');
+        window.captureGameLog('info', '接收的数据:', data);
+
+        if (data && data.loadGame && data.saveData) {
+            this.loadGameData = data.saveData;
+            window.captureGameLog('info', '将加载存档');
+        }
+    }
+
+    init(data) {
         if (data && data.loadGame && data.saveData) {
             this.loadGameData = data.saveData;
         }
     }
 
     create() {
+        window.captureGameLog('info', 'GameScene.create() 开始');
         this.cameras.main.setBackgroundColor('#87CEEB');
 
         this.platforms = this.physics.add.group();
         this.collectibles = this.physics.add.group();
         this.enemies = this.physics.add.group();
 
+        window.captureGameLog('info', '创建Player组件...');
         this.player = new Player(this, 100, 400);
+        window.captureGameLog('info', 'Player创建成功');
+
+        window.captureGameLog('info', '创建LevelManager...');
         this.levelManager = new LevelManager(this);
+
+        window.captureGameLog('info', '创建AudioManager...');
         this.audioManager = new AudioManager(this);
+
+        window.captureGameLog('info', '创建ParticleSystem...');
         this.particleSystem = new ParticleSystem(this);
 
+        window.captureGameLog('info', '设置碰撞检测...');
         this.setupCollisions();
 
         if (this.loadGameData) {
             this.score = this.loadGameData.highScore || 0;
             this.levelManager.currentLevel = this.loadGameData.currentLevel || 1;
+            window.captureGameLog('info', '加载关卡:', this.levelManager.currentLevel);
             this.levelManager.loadLevel(this.levelManager.currentLevel);
         } else {
+            window.captureGameLog('info', '加载关卡1');
             this.levelManager.loadLevel(1);
         }
 
+        window.captureGameLog('info', '注册玩家受伤事件...');
         this.scene.events.on('player-damaged', this.takeDamage, this);
+
+        window.captureGameLog('info', '启动UI场景...');
         this.scene.launch('UIScene');
+
+        window.captureGameLog('info', '播放背景音乐...');
         this.audioManager.playBackgroundMusic();
+
+        window.captureGameLog('info', 'GameScene.create() 完成！');
+        window.captureGameLog('info', '======================');
     }
 
     completeLevel() {

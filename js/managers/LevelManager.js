@@ -9,21 +9,41 @@ export default class LevelManager {
     }
 
     async loadLevel(levelNumber) {
+        window.captureGameLog('info', `LevelManager.loadLevel(${levelNumber}) 开始`);
+
         const levelData = await this.loadLevelData(levelNumber);
         if (!levelData) {
+            window.captureGameLog('error', `关卡 ${levelNumber} 加载失败`);
             console.error(`关卡 ${levelNumber} 加载失败`);
             return;
         }
 
+        window.captureGameLog('info', `关卡数据加载成功: ${levelData.name}`);
         this.currentLevel = levelNumber;
         this.buildLevel(levelData);
     }
 
     async loadLevelData(levelNumber) {
+        const url = `js/data/level${levelNumber}.json`;
+        window.captureGameLog('info', `加载关卡文件: ${url}`);
+
         try {
-            const response = await fetch(`js/data/level${levelNumber}.json`);
-            return await response.json();
+            window.captureGameLog('info', '发送fetch请求...');
+            const response = await fetch(url);
+
+            window.captureGameLog('info', `fetch响应状态: ${response.status} ${response.statusText}`);
+
+            if (!response.ok) {
+                window.captureGameLog('error', `fetch失败: ${response.status}`);
+                return null;
+            }
+
+            window.captureGameLog('info', '解析JSON...');
+            const data = await response.json();
+            window.captureGameLog('info', 'JSON解析成功');
+            return data;
         } catch (error) {
+            window.captureGameLog('error', `加载关卡数据失败: ${error.message}`);
             console.error('加载关卡数据失败:', error);
             return null;
         }
