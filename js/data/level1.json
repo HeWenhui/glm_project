@@ -1,0 +1,22 @@
+{
+  "name": "关卡1",
+  "gravity": 1000,
+  "platforms": [
+    { "x": 400, "y": 580, "width": 1600, "height": 40 },
+    { "x": 300, "y": 450, "width": 200, "height": 20 },
+    { "x": 600, "y": 350, "width": 200, "height": 20 },
+    { "x": 200, "y": 250, "width": 150, "height": 20 },
+    { "x": 500, "y": 150, "width": 200, "height": 20 }
+  ],
+  "collectibles": [
+    { "x": 400, "y": 400, "type": "coin" },
+    { "x": 650, "y": 300, "type": "coin" },
+    { "x": 700, "y": 300, "type": "gem" },
+    { "x": 250, "y": 200, "type": "heart" }
+  ],
+  "enemies": [
+    { "x": 650, "y": 310, "type": "walker" }
+  ],
+  "playerStart": { "x": 100, "y": 400 },
+  "goal": { "x": 750, "y": 100 }
+}
