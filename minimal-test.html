@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最小化测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            border: 2px solid #333;
+        }
+        #debug {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 300px;
+        }
+        button {
+            margin: 10px;
+            padding: 20px 40px;
+            background: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div id="debug">
+        <div>等待操作...</div>
+    </div>
+
+    <div id="game-container"></div>
+
+    <script>
+        const debug = document.getElementById('debug');
+
+        function log(msg) {
+            debug.innerHTML = msg + '<br>' + debug.innerHTML;
+            console.log(msg);
+        }
+
+        log('页面加载完成');
+
+        // 极简Phaser配置 - 不加载任何资源
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#87CEEB',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: function() {
+                    log('Preload开始');
+                },
+                create: function() {
+                    log('Create开始');
+
+                    const button = this.add.text(400, 300, '点击我', {
+                        fontSize: '32px',
+                        color: '#fff',
+                        fontStyle: 'bold',
+                        backgroundColor: '#333',
+                        padding: { x: 20, y: 10 }
+                    }).setOrigin(0.5).setInteractive();
+
+                    button.on('pointerdown', function() {
+                        log('按钮被点击！');
+                        this.add.text(400, 200, '测试成功！', {
+                            fontSize: '24px',
+                            color: '#4CAF50',
+                            fontStyle: 'bold'
+                        }).setOrigin(0.5);
+                    });
+                }
+            }
+        };
+
+        try {
+            log('创建Phaser游戏...');
+            const game = new Phaser.Game(config);
+            log('✓ Phaser游戏创建成功！');
+        } catch (error) {
+            log('✗ Phaser创建失败: ' + error.message);
+            log('错误详情: ' + error.stack);
+            debug.innerHTML += '<br><br><strong style="color: #f44;">' + error.message + '</strong>';
+        }
+
+        // 捕获所有错误
+        window.addEventListener('error', function(e) {
+            log('全局错误: ' + e.message);
+            debug.innerHTML += '<br><br><strong style="color: #f44;">' + e.message + '</strong>';
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            log('Promise错误: ' + e.reason);
+        });
+    </script>
+</body>
+</html>
