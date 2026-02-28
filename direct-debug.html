@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>直接调试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            color: #e0e0e0;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        #game-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+        #console-area {
+            height: 300px;
+            background: #0d0d0d;
+            padding: 10px;
+            overflow-y: auto;
+            border-top: 2px solid #333;
+        }
+        .log {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid;
+            border-radius: 3px;
+        }
+        .log-info { border-color: #2196f3; color: #61afef; }
+        .log-success { border-color: #4ade80; color: #82c91e; }
+        .log-error { border-color: #f87171; color: #f44336; font-weight: bold; }
+        .log-warn { border-color: #fbbf24; color: #ffa726; }
+        .step { color: #888; margin: 10px 0; }
+        .step::before { content: '▸ '; }
+    </style>
+</head>
+<body>
+    <div class="step" id="step1">加载index.html...</div>
+
+    <div id="game-area">
+        <div id="status">正在加载...</div>
+    </div>
+
+    <div id="console-area"></div>
+
+    <script>
+        const consoleArea = document.getElementById('console-area');
+        let step = 1;
+        let logs = [];
+
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log log-${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            consoleArea.appendChild(div);
+            consoleArea.scrollTop = consoleArea.scrollHeight;
+            logs.push({ time: new Date(), msg, type });
+        }
+
+        function setStep(num, text) {
+            step = num;
+            document.getElementById(`step${num}`).textContent = text;
+        }
+
+        async function main() {
+            try {
+                // 步骤1：加载index.html
+                setStep(1, '加载index.html内容...');
+                const response = await fetch('index.html');
+                if (!response.ok) {
+                    log(`index.html加载失败: ${response.status}`, 'error');
+                    throw new Error('index.html加载失败');
+                }
+                const htmlContent = await response.text();
+                log('index.html加载成功', 'success');
+
+                // 步骤2：检查HTML结构
+                setStep(2, '检查HTML结构...');
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlContent, 'text/html');
+
+                const gameContainer = doc.getElementById('game-container');
+                if (!gameContainer) {
+                    log('错误: 找不到game-container', 'error');
+                    return;
+                }
+                log('game-container存在', 'success');
+
+                // 检查script标签
+                const scripts = doc.querySelectorAll('script');
+                log(`找到${scripts.length}个script标签`, 'info');
+
+                scripts.forEach((script, index) => {
+                    const hasModule = script.hasAttribute('type');
+                    const src = script.getAttribute('src');
+                    log(`  Script ${index + 1}: ${hasModule ? 'module' : 'normal'} - ${src || 'inline'}`, 'info');
+                });
+
+                // 步骤3：检查main.js引用
+                setStep(3, '检查main.js引用...');
+                const mainScript = Array.from(scripts).find(s => s.src && s.src.includes('main.js'));
+                if (mainScript) {
+                    log('main.js script标签存在', 'success');
+                    if (!mainScript.hasAttribute('type')) {
+                        log('警告: main.js没有type="module"属性', 'warn');
+                    }
+                } else {
+                    log('错误: 找不到main.js引用', 'error');
+                }
+
+                // 步骤4：显示游戏框架
+                setStep(4, '创建游戏框架...');
+                log('直接插入index.html到当前页面', 'info');
+
+                // 创建容器
+                const gameArea = document.getElementById('game-area');
+                gameArea.innerHTML = htmlContent;
+
+                // 等待页面渲染
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                setStep(5, '等待Phaser加载...');
+                log('等待Phaser库加载...', 'info');
+
+                // 检查Phaser是否加载
+                if (typeof Phaser === 'undefined') {
+                    log('错误: Phaser未加载', 'error');
+                    return;
+                }
+                log(`Phaser v${Phaser.VERSION} 已加载`, 'success');
+
+                // 步骤6：检查场景模块
+                setStep(6, '检查场景模块可加载性...');
+
+                const sceneFiles = [
+                    'js/scenes/BootScene.js',
+                    'js/scenes/MenuScene.js',
+                    'js/scenes/GameScene.js',
+                    'js/scenes/UIScene.js'
+                ];
+
+                for (const file of sceneFiles) {
+                    try {
+                        const response = await fetch(file);
+                        if (response.ok) {
+                            log(`${file} 可访问 (${response.status})`, 'success');
+                        } else {
+                            log(`${file} HTTP错误: ${response.status}`, 'error');
+                        }
+                    } catch (error) {
+                        log(`${file} 加载异常: ${error.message}`, 'error');
+                    }
+                }
+
+                setStep(7, '✓ 所有检查完成');
+                log('诊断完成！请查看游戏区域', 'success');
+                document.getElementById('status').innerHTML = '<span style="color: #4ade80;">诊断完成</span>';
+
+            } catch (error) {
+                log(`诊断过程出错: ${error.message}`, 'error');
+                log(`错误堆栈: ${error.stack}`, 'error');
+                document.getElementById('status').innerHTML = '<span style="color: #f87171;">诊断失败</span>';
+            }
+        }
+
+        // 捕获所有console输出
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = function(...args) {
+            log(args.join(' '), 'info');
+            originalLog.apply(console, args);
+        };
+        console.error = function(...args) {
+            log(args.join(' '), 'error');
+            originalError.apply(console, args);
+        };
+        console.warn = function(...args) {
+            log(args.join(' '), 'warn');
+            originalWarn.apply(console, args);
+        };
+
+        // 捕获全局错误
+        window.addEventListener('error', function(e) {
+            log(`全局错误: ${e.message} (${e.filename}:${e.lineno})`, 'error');
+            if (e.error) {
+                log(`错误对象: ${e.error}`, 'error');
+            }
+        });
+
+        window.addEventListener('unhandledrejection', function(e) {
+            log(`未处理的Promise: ${e.reason}`, 'error');
+        });
+
+        // 开始诊断
+        log('=== 开始诊断 ===', 'info');
+        main();
+
+        // 30秒后如果没有其他输出，提示用户
+        setTimeout(() => {
+            if (document.getElementById('status').textContent.includes('等待')) {
+                log('诊断卡住了？请手动检查游戏', 'warn');
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
