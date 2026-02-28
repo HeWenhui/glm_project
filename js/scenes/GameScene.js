@@ -1,3 +1,5 @@
+import Player from '../components/Player.js';
+
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'GameScene' });
@@ -5,13 +7,21 @@ export default class GameScene extends Phaser.Scene {
 
     create() {
         this.cameras.main.setBackgroundColor('#87CEEB');
-        this.add.text(10, 10, '游戏场景 - 待实现', {
-            fontSize: '20px',
-            color: '#ffffff'
-        });
+
+        this.player = new Player(this, 100, 400);
+
+        this.createGround();
+        this.physics.add.collider(this.player, this.ground);
+
+        this.scene.launch('UIScene');
+    }
+
+    createGround() {
+        this.ground = this.add.rectangle(400, 580, 1600, 40, 0x8B4513);
+        this.physics.add.existing(this.ground, true);
     }
 
     update() {
-        // 更新逻辑
+        this.player.update();
     }
 }
