@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Phaser测试</title>
+    <style>
+        body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #game-container { border: 2px solid #333; }
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script>
+        console.log('Phaser version:', Phaser.VERSION);
+        console.log('Phaser available:', typeof Phaser !== 'undefined');
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#87CEEB',
+            scene: {
+                preload: function() {
+                    console.log('Preloading...');
+
+                    // 加载简单的颜色矩形作为占位符
+                    const graphics = this.make.graphics();
+                    graphics.fillStyle(0xFF6B6B);
+                    graphics.fillRect(0, 0, 32, 48);
+                    graphics.generateTexture('player');
+
+                    this.load.on('complete', () => console.log('Loading complete!'));
+                    this.load.on('loaderror', (file) => console.error('Load error:', file.key));
+                },
+
+                create: function() {
+                    console.log('Creating scene...');
+                    const player = this.add.sprite(400, 300, 'player');
+
+                    const ground = this.add.rectangle(400, 550, 1600, 40, 0x8B4513);
+                    this.physics.add.existing(ground, true);
+
+                    this.physics.add.existing(player);
+
+                    this.physics.add.collider(player, ground);
+
+                    this.add.text(400, 100, 'Phaser测试成功!', {
+                        fontSize: '32px',
+                        color: '#ffffff',
+                        fontStyle: 'bold'
+                    }).setOrigin(0.5);
+                },
+
+                update: function() {
+                    // Update logic here
+                }
+            }
+        };
+
+        try {
+            const game = new Phaser.Game(config);
+            console.log('Game created successfully!');
+        } catch (error) {
+            console.error('Failed to create game:', error);
+            document.body.innerHTML = '<h1 style="color: red; text-align: center; margin-top: 50px;">游戏创建失败: ' + error.message + '</h1>';
+        }
+    </script>
+</body>
+</html>

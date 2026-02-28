@@ -22,6 +22,23 @@
 </head>
 <body>
     <div id="game-container"></div>
+
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error('JavaScript Error:', message);
+            console.error('Source:', source);
+            console.error('Line:', lineno);
+            console.error('Column:', colno);
+            console.error('Error:', error);
+            alert('JavaScript错误: ' + message + '\n\n请按F12打开控制台查看详细信息');
+        };
+
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('Unhandled Promise Rejection:', event.reason);
+            alert('未处理的Promise错误: ' + event.reason);
+        });
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏调试</title>
+    <style>
+        body {
+            margin: 20px;
+            font-family: monospace;
+            background: #222;
+            color: #eee;
+        }
+        h2 { color: #4CAF50; }
+        #error { color: #F44336; font-weight: bold; }
+        #success { color: #4CAF50; }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #333;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h2>游戏资源加载诊断</h2>
+
+    <div class="test-item">
+        测试加载player.png... <span id="test-player">检查中</span>
+    </div>
+
+    <div class="test-item">
+        测试加载ground.png... <span id="test-ground">检查中</span>
+    </div>
+
+    <div class="test-item">
+        测试加载platform.png... <span id="test-platform">检查中</span>
+    </div>
+
+    <div class="test-item">
+        测试加载enemy.png... <span id="test-enemy">检查中</span>
+    </div>
+
+    <div class="test-item">
+        测试加载coin.png... <span id="test-coin">检查中</span>
+    </div>
+
+    <div id="error-log"></div>
+
+    <script>
+        async function testResource(url) {
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    return { success: true, status: response.status };
+                } else {
+                    return { success: false, status: response.status };
+                }
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function runTests() {
+            const tests = [
+                { id: 'player', url: 'assets/sprites/player.png' },
+                { id: 'ground', url: 'assets/images/ground.png' },
+                { id: 'platform', url: 'assets/images/platform.png' },
+                { id: 'enemy', url: 'assets/sprites/enemy.png' },
+                { id: 'coin', url: 'assets/sprites/coin.png' }
+            ];
+
+            for (const test of tests) {
+                const result = await testResource(test.url);
+                const el = document.getElementById(`test-${test.id}`);
+                if (result.success) {
+                    el.innerHTML = `<span id="success">✓ 可访问 (${result.status})</span>`;
+                } else {
+                    el.innerHTML = `<span id="error">✗ 失败: ${result.error || 'HTTP ' + result.status}</span>`;
+                }
+            }
+        }
+
+        runTests();
+    </script>
+</body>
+</html>
