@@ -15,4 +15,12 @@ export default class UIScene extends Phaser.Scene {
             color: '#ffffff'
         });
     }
+
+    updateScore(score) {
+        this.scoreText.setText('分数: ' + score);
+    }
+
+    updateHealth(health) {
+        this.healthText.setText('生命: ' + health);
+    }
 }
