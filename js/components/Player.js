@@ -84,4 +84,26 @@ export default class Player extends Phaser.GameObjects.Sprite {
             this.jumping = false;
         }
     }
+
+    takeDamage(amount) {
+        this.scene.tweens.add({
+            targets: this,
+            alpha: 0.5,
+            duration: 100,
+            yoyo: true,
+            repeat: 3
+        });
+
+        this.scene.events.emit('player-damaged', amount);
+    }
+
+    die() {
+        this.isDead = true;
+        this.body.stop();
+        this.play('die', true);
+
+        this.scene.time.delayedCall(2000, () => {
+            this.scene.scene.restart();
+        });
+    }
 }
