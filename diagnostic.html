@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>游戏完整诊断</title>
+    <style>
+        body {
+            margin: 20px;
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+        h1 { color: #61dafb; border-bottom: 2px solid #61dafb; padding-bottom: 10px; }
+        h2 { color: #f4e28a; margin-top: 30px; }
+        .section {
+            background: #2d2d2d;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #61dafb;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #1e1e1e;
+            border-radius: 4px;
+        }
+        .success { color: #4ade80; }
+        .error { color: #f87171; font-weight: bold; }
+        .warning { color: #fbbf24; }
+        .info { color: #60a5fa; }
+        button {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            background: #61dafb;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        button:hover { background: #4ade80; }
+        #logs {
+            background: #0d0d0d;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .log-entry { margin: 5px 0; padding: 5px; border-bottom: 1px solid #333; }
+        .log-error { color: #f87171; }
+        .log-warn { color: #fbbf24; }
+        .log-info { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <h1>🎮 游戏完整诊断工具</h1>
+
+    <div class="section">
+        <h2>第1步：资源加载测试</h2>
+
+        <div class="status" id="resources-test">
+            <div class="info">点击开始测试...</div>
+            <button onclick="testResources()">开始测试</button>
+        </div>
+
+        <div id="resource-results"></div>
+    </div>
+
+    <div class="section">
+        <h2>第2步：Phaser初始化测试</h2>
+
+        <div class="status" id="phaser-test">
+            <div class="info">点击开始测试...</div>
+            <button onclick="testPhaser()">开始测试</button>
+        </div>
+
+        <div id="phaser-results"></div>
+    </div>
+
+    <div class="section">
+        <h2>第3步：场景切换测试</h2>
+
+        <div class="status" id="scene-test">
+            <div class="info">点击开始测试...</div>
+            <button onclick="testScenes()">开始测试</button>
+        </div>
+
+        <div id="scene-results"></div>
+    </div>
+
+    <div class="section">
+        <h2>第4步：实际游戏加载</h2>
+
+        <div class="warning">
+            ⚠️ 如果以上测试都通过，点击下方按钮加载实际游戏
+        </div>
+
+        <button onclick="loadActualGame()">🎮 加载实际游戏</button>
+    </div>
+
+    <div class="section">
+        <h2>📋 运行日志</h2>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        const logsDiv = document.getElementById('logs');
+
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logsDiv.appendChild(entry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        async function testResources() {
+            log('开始资源加载测试...', 'info');
+
+            const resources = [
+                { name: 'player.png', url: 'assets/sprites/player.png' },
+                { name: 'ground.png', url: 'assets/images/ground.png' },
+                { name: 'platform.png', url: 'assets/images/platform.png' },
+                { name: 'enemy.png', url: 'assets/sprites/enemy.png' },
+                { name: 'coin.png', url: 'assets/sprites/coin.png' },
+                { name: 'particle.png', url: 'assets/sprites/particle.png' },
+                { name: 'spark.png', url: 'assets/sprites/spark.png' },
+                { name: 'dust.png', url: 'assets/sprites/dust.png' }
+            ];
+
+            const resultsDiv = document.getElementById('resource-results');
+            resultsDiv.innerHTML = '';
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const resource of resources) {
+                try {
+                    const response = await fetch(resource.url, { method: 'HEAD' });
+                    const div = document.createElement('div');
+                    div.className = 'status';
+
+                    if (response.ok) {
+                        div.innerHTML = `<span class="success">✓ ${resource.name}</span> (${response.status})`;
+                        successCount++;
+                    } else {
+                        div.innerHTML = `<span class="error">✗ ${resource.name}</span> (${response.status})`;
+                        failCount++;
+                        log(`资源加载失败: ${resource.name} - HTTP ${response.status}`, 'error');
+                    }
+                    resultsDiv.appendChild(div);
+                } catch (error) {
+                    const div = document.createElement('div');
+                    div.className = 'status';
+                    div.innerHTML = `<span class="error">✗ ${resource.name}</span> (${error.message})`;
+                    resultsDiv.appendChild(div);
+                    failCount++;
+                    log(`资源加载异常: ${resource.name} - ${error.message}`, 'error');
+                }
+            }
+
+            const testDiv = document.getElementById('resources-test');
+            testDiv.innerHTML = `<span class="success">测试完成: ${successCount}成功, ${failCount}失败</span>`;
+
+            log(`资源测试完成: ${successCount}个成功, ${failCount}个失败`, failCount > 0 ? 'error' : 'success');
+        }
+
+        function testPhaser() {
+            log('开始Phaser初始化测试...', 'info');
+
+            const resultsDiv = document.getElementById('phaser-results');
+            resultsDiv.innerHTML = '';
+
+            const tests = [];
+
+            // 测试1: Phaser是否加载
+            if (typeof Phaser !== 'undefined') {
+                const div = document.createElement('div');
+                div.className = 'status';
+                div.innerHTML = `<span class="success">✓ Phaser已加载 (v${Phaser.VERSION})</span>`;
+                resultsDiv.appendChild(div);
+                tests.push(true);
+                log(`Phaser版本: ${Phaser.VERSION}`, 'info');
+            } else {
+                const div = document.createElement('div');
+                div.className = 'status';
+                div.innerHTML = `<span class="error">✗ Phaser未加载</span>`;
+                resultsDiv.appendChild(div);
+                tests.push(false);
+                log('Phaser未定义', 'error');
+            }
+
+            // 测试2: Phaser.Game创建
+            try {
+                const game = new Phaser.Game({
+                    type: Phaser.AUTO,
+                    width: 400,
+                    height: 300,
+                    parent: 'phaser-test-container',
+                    backgroundColor: '#87CEEB',
+                    scene: {
+                        preload: function() {
+                            this.load.image('test', 'assets/images/ground.png');
+                        },
+                        create: function() {
+                            this.add.image(200, 150, 'test');
+                            log('Phaser.Game创建成功', 'success');
+                        }
+                    }
+                });
+
+                const div = document.createElement('div');
+                div.className = 'status';
+                div.innerHTML = `<span class="success">✓ Phaser.Game创建成功</span>`;
+                resultsDiv.appendChild(div);
+                tests.push(true);
+            } catch (error) {
+                const div = document.createElement('div');
+                div.className = 'status';
+                div.innerHTML = `<span class="error">✗ Phaser.Game创建失败: ${error.message}</span>`;
+                resultsDiv.appendChild(div);
+                tests.push(false);
+                log(`Phaser.Game创建失败: ${error.message}`, 'error');
+            }
+
+            const testDiv = document.getElementById('phaser-test');
+            testDiv.innerHTML = `<span class="${tests.every(t => t) ? 'success' : 'error'}">测试完成: ${tests.filter(t => t).length}/${tests.length}通过</span>`;
+        }
+
+        function testScenes() {
+            log('开始场景切换测试...', 'info');
+
+            const resultsDiv = document.getElementById('scene-results');
+            resultsDiv.innerHTML = '';
+
+            const scenes = ['BootScene', 'MenuScene', 'GameScene', 'UIScene', 'LevelCompleteScene', 'PauseScene'];
+
+            for (const sceneName of scenes) {
+                try {
+                    const module = await import(`./js/scenes/${sceneName}.js`);
+                    const div = document.createElement('div');
+                    div.className = 'status';
+
+                    if (module && module.default) {
+                        div.innerHTML = `<span class="success">✓ ${sceneName}.js 模块可加载</span>`;
+                        log(`${sceneName}.js 模块加载成功`, 'info');
+                    } else {
+                        div.innerHTML = `<span class="error">✗ ${sceneName}.js 模块无效</span>`;
+                        log(`${sceneName}.js 模块无效`, 'error');
+                    }
+                    resultsDiv.appendChild(div);
+                } catch (error) {
+                    const div = document.createElement('div');
+                    div.className = 'status';
+                    div.innerHTML = `<span class="error">✗ ${sceneName}.js 加载失败: ${error.message}</span>`;
+                    resultsDiv.appendChild(div);
+                    log(`${sceneName}.js 加载异常: ${error.message}`, 'error');
+                }
+            }
+
+            const testDiv = document.getElementById('scene-test');
+            testDiv.innerHTML = `<span class="success">测试完成</span>`;
+        }
+
+        function loadActualGame() {
+            if (confirm('确定要加载实际游戏吗？这将替换当前页面。')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        // 页面加载完成时的初始化
+        window.addEventListener('DOMContentLoaded', function() {
+            log('诊断页面加载完成', 'info');
+
+            // 添加Phaser测试容器
+            const container = document.createElement('div');
+            container.id = 'phaser-test-container';
+            container.style.cssText = 'margin: 20px auto; border: 2px solid #61dafb;';
+            document.body.appendChild(container);
+
+            // 检查是否在HTTP服务器上运行
+            if (window.location.protocol === 'file:') {
+                log('⚠️ 警告: 使用file://协议可能导致ES6模块加载失败', 'warning');
+                log('建议: 使用HTTP服务器运行 (npm run dev)', 'warning');
+            }
+        });
+
+        // 全局错误捕获
+        window.addEventListener('error', function(event) {
+            log(`全局错误: ${event.message} (${event.filename}:${event.lineno})`, 'error');
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            log(`未处理的Promise错误: ${event.reason}`, 'error');
+        });
+
+        // 模块加载错误捕获
+        window.addEventListener('error', function(event) {
+            if (event.target && event.target.tagName === 'SCRIPT') {
+                log(`脚本加载失败: ${event.target.src}`, 'error');
+            }
+        }, true);
+    </script>
+</body>
+</html>
