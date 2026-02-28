@@ -4,6 +4,7 @@ import GameScene from './scenes/GameScene.js';
 import UIScene from './scenes/UIScene.js';
 import LevelCompleteScene from './scenes/LevelCompleteScene.js';
 import PauseScene from './scenes/PauseScene.js';
+import Debug from './utils/Debug.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -21,4 +22,5 @@ const config = {
     scene: [BootScene, MenuScene, GameScene, UIScene, LevelCompleteScene, PauseScene]
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+Debug.init(game);
