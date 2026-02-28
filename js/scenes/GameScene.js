@@ -31,17 +31,11 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    init(data) {
-        if (data && data.loadGame && data.saveData) {
-            this.loadGameData = data.saveData;
-        }
-    }
-
     create() {
         window.captureGameLog('info', 'GameScene.create() 开始');
         this.cameras.main.setBackgroundColor('#87CEEB');
 
-        this.platforms = this.physics.add.group();
+        this.staticPlatforms = [];
         this.collectibles = this.physics.add.group();
         this.enemies = this.physics.add.group();
 
@@ -72,7 +66,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         window.captureGameLog('info', '注册玩家受伤事件...');
-        this.scene.events.on('player-damaged', this.takeDamage, this);
+        this.events.on('player-damaged', this.takeDamage, this);
 
         window.captureGameLog('info', '启动UI场景...');
         this.scene.launch('UIScene');
@@ -95,14 +89,12 @@ export default class GameScene extends Phaser.Scene {
     }
 
     setupCollisions() {
-        this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.player, this.enemies, this.handleEnemyCollision, null, this);
-        this.physics.add.collider(this.enemies, this.platforms);
         this.physics.add.overlap(this.player, this.collectibles, this.collectItem, null, this);
     }
 
     handleEnemyCollision(player, enemy) {
-        if (player.body.touching.down && player.body.velocity.y > 0) {
+        if (player.body.blocked.down && player.body.velocity.y > 0) {
             enemy.destroy();
             this.score += 50;
             this.audioManager.playEnemyHit();

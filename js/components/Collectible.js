@@ -27,12 +27,18 @@ export default class Collectible extends Phaser.GameObjects.Sprite {
         const animKey = `${this.type}-spin`;
 
         if (!this.scene.anims.exists(animKey)) {
-            this.scene.anims.create({
-                key: animKey,
-                frames: this.scene.anims.generateFrameNumbers(this.type, { start: 0, end: 3 }),
-                frameRate: 8,
-                repeat: -1
-            });
+            console.log(`Creating ${this.type} animation`);
+            try {
+                this.scene.anims.create({
+                    key: animKey,
+                    frames: this.scene.anims.generateFrameNumbers(this.type, { start: 0, end: 3 }),
+                    frameRate: 8,
+                    repeat: -1
+                });
+                console.log(`  ${this.type} animation created successfully`);
+            } catch (e) {
+                console.error(`  Failed to create ${this.type} animation:`, e);
+            }
         }
         this.play(animKey);
     }

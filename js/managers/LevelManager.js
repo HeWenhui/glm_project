@@ -55,10 +55,20 @@ export default class LevelManager {
         this.scene.physics.world.gravity.y = data.gravity || 1000;
 
         platforms.forEach(p => {
-            this.scene.platforms.add(new Platform(
-                this.scene,
-                p.x, p.y, p.width, p.height
-            ));
+            const centerX = p.x + p.width / 2;
+            const centerY = p.y + p.height / 2;
+
+            const platform = this.scene.physics.add.staticImage(centerX, centerY, null);
+            platform.setDisplaySize(p.width, p.height);
+            platform.setTint(0x654321);
+            platform.body.setSize(p.width, p.height);
+
+            console.log(`创建平台: 中心(${centerX}, ${centerY}), 大小(${p.width}x${p.height})`);
+            console.log(`平台body: x=${platform.body.x}, y=${platform.body.y}, w=${platform.body.width}, h=${platform.body.height}`);
+
+            this.scene.staticPlatforms.push(platform);
+            this.scene.physics.add.collider(this.scene.player, platform);
+            this.scene.physics.add.collider(this.scene.enemies, platform);
         });
 
         collectibles.forEach(c => {
@@ -83,9 +93,17 @@ export default class LevelManager {
     createGoal(goal) {
         if (!goal) return;
 
-        const goalSprite = this.scene.add.rectangle(goal.x, goal.y, 40, 40, 0x00ff00);
+        const goalSize = 40;
+        const centerX = goal.x + goalSize / 2;
+        const centerY = goal.y + goalSize / 2;
+
+        const goalSprite = this.scene.add.image(centerX, centerY);
+        goalSprite.setDisplaySize(goalSize, goalSize);
+        goalSprite.setTint(0x00ff00);
         goalSprite.setAlpha(0.5);
+
         this.scene.physics.add.existing(goalSprite, true);
+        goalSprite.body.setSize(goalSize, goalSize);
 
         this.scene.physics.add.overlap(this.scene.player, goalSprite, () => {
             this.scene.scene.start('LevelCompleteScene', {

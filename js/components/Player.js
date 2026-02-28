@@ -2,6 +2,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y) {
         super(scene, x, y, 'player');
         scene.add.existing(this);
+
         scene.physics.add.existing(this);
 
         this.body.setCollideWorldBounds(true);
@@ -38,7 +39,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
 
         this.scene.anims.create({
             key: 'jump',
-            frames: [{ key: 'player', frame: 4 }],
+            frames: [{ key: 'player', frame: 0 }],
             frameRate: 1,
             repeat: -1
         });
@@ -49,27 +50,31 @@ export default class Player extends Phaser.GameObjects.Sprite {
     update() {
         if (this.isDead) return;
 
+        let moving = false;
+
         if (this.cursors.left.isDown) {
             this.body.setVelocityX(-this.speed);
             this.setFlipX(true);
-            if (this.body.touching.down) {
+            if (this.body.blocked.down) {
                 this.play('run', true);
             }
+            moving = true;
         } else if (this.cursors.right.isDown) {
             this.body.setVelocityX(this.speed);
             this.setFlipX(false);
-            if (this.body.touching.down) {
+            if (this.body.blocked.down) {
                 this.play('run', true);
             }
+            moving = true;
         } else {
             this.body.setVelocityX(0);
-            if (this.body.touching.down) {
+            if (this.body.blocked.down) {
                 this.play('idle', true);
             }
         }
 
         if (Phaser.Input.Keyboard.JustDown(this.jumpKey)) {
-            if (this.body.touching.down) {
+            if (this.body.blocked.down) {
                 this.scene.particleSystem?.createJumpDust(this.x, this.y + 24);
                 this.body.setVelocityY(this.jumpForce);
                 this.jumping = true;
@@ -82,7 +87,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
             }
         }
 
-        if (this.body.touching.down) {
+        if (this.body.blocked.down) {
             this.jumping = false;
         }
     }

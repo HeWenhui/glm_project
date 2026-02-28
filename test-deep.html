@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deep Animation Test</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; }
+        #log { padding: 20px; }
+    </style>
+</head>
+<body>
+    <div id="log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script>
+        function log(msg) {
+            const div = document.getElementById('log');
+            div.innerHTML += `<div>${msg}</div>`;
+            console.log(msg);
+        }
+
+        class TestScene extends Phaser.Scene {
+            constructor() {
+                super('TestScene');
+            }
+
+            preload() {
+                log('Preload started...');
+
+                this.load.spritesheet('player', 'assets/sprites/player.png', {
+                    frameWidth: 32,
+                    frameHeight: 48
+                });
+            }
+
+            create() {
+                log('Create started...');
+
+                const texture = this.textures.get('player');
+                log(`Texture exists: ${texture !== null}`);
+                log(`Texture key: ${texture.key}`);
+
+                const frames = texture.frames;
+                log(`Frames object: ${typeof frames}`);
+                log(`Frames has total: ${'total' in frames}`);
+
+                if (frames.total !== undefined) {
+                    log(`Total frames: ${frames.total}`);
+                } else {
+                    log('total is undefined, trying to get frame list...');
+                    for (let key in frames) {
+                        if (typeof frames[key] === 'object' && frames[key].hasOwnProperty('name')) {
+                            log(`Frame ${key}: ${frames[key].name}`);
+                        }
+                    }
+                }
+
+                log('\\n--- Testing different frame ranges ---\\n');
+
+                try {
+                    log('Trying frames 0-3...');
+                    const frames1 = this.anims.generateFrameNumbers('player', { start: 0, end: 3 });
+                    log(`Success: ${frames1.length} frames`);
+                } catch (e) {
+                    log(`Failed: ${e.message}`);
+                }
+
+                try {
+                    log('Trying frames 0-4...');
+                    const frames2 = this.anims.generateFrameNumbers('player', { start: 0, end: 4 });
+                    log(`Success: ${frames2.length} frames`);
+                } catch (e) {
+                    log(`Failed: ${e.message}`);
+                }
+
+                try {
+                    log('Trying frames 0-5...');
+                    const frames3 = this.anims.generateFrameNumbers('player', { start: 0, end: 5 });
+                    log(`Success: ${frames3.length} frames`);
+                } catch (e) {
+                    log(`Failed: ${e.message}`);
+                }
+
+                log('\\n--- Creating actual sprite and testing ---\\n');
+
+                const sprite = this.add.sprite(400, 300, 'player', 0);
+                log(`Sprite created with frame 0: ${sprite.frame.name}`);
+
+                try {
+                    this.anims.create({
+                        key: 'idle',
+                        frames: [{ key: 'player', frame: 0 }],
+                        frameRate: 1,
+                        repeat: -1
+                    });
+                    log('Idle animation created');
+                } catch (e) {
+                    log(`Idle animation failed: ${e.message}`);
+                }
+
+                try {
+                    this.anims.create({
+                        key: 'run',
+                        frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+                        frameRate: 10,
+                        repeat: -1
+                    });
+                    log('Run animation created');
+                } catch (e) {
+                    log(`Run animation failed: ${e.message}`);
+                }
+
+                try {
+                    sprite.play('idle');
+                    log('Playing idle animation');
+                } catch (e) {
+                    log(`Play idle failed: ${e.message}`);
+                    log(`Stack: ${e.stack}`);
+                }
+            }
+        }
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            backgroundColor: '#000000',
+            scene: TestScene
+        };
+
+        const game = new Phaser.Game(config);
+    </script>
+</body>
+</html>

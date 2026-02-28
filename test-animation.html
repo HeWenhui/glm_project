@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Animation Test</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; }
+        #log { padding: 20px; }
+    </style>
+</head>
+<body>
+    <div id="log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script>
+        function log(msg) {
+            const div = document.getElementById('log');
+            div.innerHTML += `<div>${msg}</div>`;
+            console.log(msg);
+        }
+
+        class TestScene extends Phaser.Scene {
+            constructor() {
+                super('TestScene');
+            }
+
+            preload() {
+                log('Preload started...');
+
+                this.load.on('loaderror', (file) => {
+                    log(`Load error: ${file.key} - ${file.url}`);
+                });
+
+                this.load.on('complete', () => {
+                    log('All assets loaded');
+                });
+
+                this.load.spritesheet('player', 'assets/sprites/player.png', {
+                    frameWidth: 32,
+                    frameHeight: 48
+                });
+
+                this.load.spritesheet('coin', 'assets/sprites/coin.png', {
+                    frameWidth: 20,
+                    frameHeight: 20
+                });
+
+                this.load.spritesheet('enemy', 'assets/sprites/enemy.png', {
+                    frameWidth: 32,
+                    frameHeight: 32
+                });
+            }
+
+            create() {
+                log('Create started...');
+
+                try {
+                    log('Checking player texture...');
+                    const playerTex = this.textures.get('player');
+                    log(`Player texture exists: ${playerTex !== null}`);
+                    log(`Player frames count: ${playerTex.frames.total}`);
+
+                    log('Generating frame numbers for player...');
+                    const frames = this.anims.generateFrameNumbers('player', { start: 0, end: 3 });
+                    log(`Generated frames: ${JSON.stringify(frames)}`);
+
+                    log('Creating animation...');
+                    this.anims.create({
+                        key: 'run',
+                        frames: frames,
+                        frameRate: 10,
+                        repeat: -1
+                    });
+
+                    log('Animation created successfully!');
+
+                } catch (error) {
+                    log(`ERROR: ${error.message}`);
+                    log(`Stack: ${error.stack}`);
+                }
+            }
+        }
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            backgroundColor: '#000000',
+            scene: TestScene
+        };
+
+        const game = new Phaser.Game(config);
+    </script>
+</body>
+</html>

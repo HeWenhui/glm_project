@@ -54,6 +54,7 @@ export default class BootScene extends Phaser.Scene {
     }
 
     create() {
+        console.log('BootScene.create() - 所有资源加载完成');
         this.scene.start('MenuScene');
     }
 }

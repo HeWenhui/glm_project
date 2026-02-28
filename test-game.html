@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Debug</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
+        #game-container { border: 2px solid #333; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h2>Game Debug Test</h2>
+    <div id="game-container"></div>
+    <div id="log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script>
+        function log(msg) {
+            const div = document.getElementById('log');
+            div.innerHTML += `<div>${msg}</div>`;
+            console.log(msg);
+        }
+
+        class TestScene extends Phaser.Scene {
+            constructor() {
+                super('TestScene');
+                this.player = null;
+            }
+
+            preload() {
+                this.load.spritesheet('player', 'assets/sprites/player.png', {
+                    frameWidth: 32,
+                    frameHeight: 48
+                });
+            }
+
+            create() {
+                log('Create started...');
+
+                // 创建地面
+                const ground = this.physics.add.staticImage(400, 570, null);
+                ground.setDisplaySize(800, 40);
+                ground.setTint(0x654321);
+                ground.setAlpha(1);
+                log('Ground created at (400, 570), size 800x40');
+
+                // 创建玩家
+                this.player = this.physics.add.sprite(100, 500, 'player', 0);
+                this.player.body.setCollideWorldBounds(true);
+                this.player.body.setGravityY(1000);
+                this.player.body.setSize(30, 48);
+                log(`Player created at (100, 500)`);
+                log(`Player touching down: ${this.player.body.touching.down}`);
+
+                // 碰撞
+                this.physics.add.collider(this.player, ground);
+                log('Collider set up');
+
+                // 键盘
+                this.cursors = this.input.keyboard.createCursorKeys();
+                this.jumpKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+                log('Keys created');
+
+                log('\\nControls: Arrow keys to move, SPACE to jump');
+                log('=========================\\n');
+            }
+
+            update() {
+                if (!this.player) return;
+
+                // 移动
+                if (this.cursors.left.isDown) {
+                    this.player.body.setVelocityX(-300);
+                } else if (this.cursors.right.isDown) {
+                    this.player.body.setVelocityX(300);
+                } else {
+                    this.player.body.setVelocityX(0);
+                }
+
+                // 跳跃
+                if (Phaser.Input.Keyboard.JustDown(this.jumpKey)) {
+                    log(`Jump pressed! touching.down = ${this.player.body.touching.down}`);
+                    if (this.player.body.touching.down) {
+                        log('Executing jump!');
+                        this.player.body.setVelocityY(-500);
+                    }
+                }
+
+                // 每60帧输出一次位置信息
+                if (this.time.now % 1000 < 17) {
+                    log(`Player pos: (${this.player.x.toFixed(1)}, ${this.player.y.toFixed(1)}), touching.down: ${this.player.body.touching.down}`);
+                }
+            }
+        }
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            backgroundColor: '#87CEEB',
+            parent: 'game-container',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 1000 },
+                    debug: false
+                }
+            },
+            scene: TestScene
+        };
+
+        const game = new Phaser.Game(config);
+    </script>
+</body>
+</html>

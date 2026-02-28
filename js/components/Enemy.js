@@ -19,12 +19,18 @@ export default class Enemy extends Phaser.GameObjects.Sprite {
 
     createAnimations() {
         if (!this.scene.anims.exists('enemy-walk')) {
-            this.scene.anims.create({
-                key: 'enemy-walk',
-                frames: this.scene.anims.generateFrameNumbers('enemy', { start: 0, end: 2 }),
-                frameRate: 8,
-                repeat: -1
-            });
+            console.log('Creating enemy animation');
+            try {
+                this.scene.anims.create({
+                    key: 'enemy-walk',
+                    frames: this.scene.anims.generateFrameNumbers('enemy', { start: 0, end: 2 }),
+                    frameRate: 8,
+                    repeat: -1
+                });
+                console.log('Enemy animation created successfully');
+            } catch (e) {
+                console.error('Failed to create enemy animation:', e);
+            }
         }
         this.play('enemy-walk');
     }

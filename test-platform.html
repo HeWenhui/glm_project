@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Platform Test</title>
+    <style>
+        body { background: #000; color: #fff; font-family: monospace; padding: 20px; }
+        #game-container { border: 2px solid #333; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h2>Platform Test</h2>
+    <div id="game-container"></div>
+    <div id="log"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script>
+        function log(msg) {
+            const div = document.getElementById('log');
+            div.innerHTML += `<div>${msg}</div>`;
+            console.log(msg);
+        }
+
+        class TestScene extends Phaser.Scene {
+            constructor() {
+                super('TestScene');
+            }
+
+            preload() {
+                this.load.spritesheet('player', 'assets/sprites/player.png', {
+                    frameWidth: 32,
+                    frameHeight: 48
+                });
+            }
+
+            create() {
+                log('=== Creating Platform ===\\n');
+
+                try {
+                    log('1. Creating physics.add.staticImage...');
+                    const platform1 = this.physics.add.staticImage(400, 570, null);
+                    platform1.setDisplaySize(800, 40);
+                    platform1.setTint(0x654321);
+                    platform1.body.setSize(800, 40);
+                    log(`   SUCCESS: Platform created at (${platform1.x}, ${platform1.y})`);
+                    log(`   Body size: ${platform1.body.width}x${platform1.body.height}`);
+                } catch (e) {
+                    log(`   FAILED: ${e.message}`);
+                }
+
+                log('');
+
+                try {
+                    log('2. Creating from custom Platform class...');
+
+                    class Platform extends Phaser.Physics.Arcade.StaticImage {
+                        constructor(scene, x, y, width, height, color = 0x654321) {
+                            const centerX = x + width / 2;
+                            const centerY = y + height / 2;
+
+                            super(scene, centerX, centerY);
+
+                            scene.add.existing(this);
+
+                            this.body.setSize(width, height);
+                            this.setDisplaySize(width, height);
+                            this.setTint(color);
+                            this.setAlpha(1);
+                        }
+                    }
+
+                    const platform2 = new Platform(this, 0, 500, 300, 40, 0x654321);
+                    log(`   SUCCESS: Custom platform created at (${platform2.x}, ${platform2.y})`);
+                    log(`   Body size: ${platform2.body.width}x${platform2.body.height}`);
+                } catch (e) {
+                    log(`   FAILED: ${e.message}`);
+                    log(`   Stack: ${e.stack}`);
+                }
+
+                log('');
+
+                try {
+                    log('3. Adding platform to physics group...');
+
+                    class Platform3 extends Phaser.Physics.Arcade.StaticImage {
+                        constructor(scene, x, y, width, height) {
+                            super(scene, x + width/2, y + height/2);
+                            scene.add.existing(this);
+                            this.body.setSize(width, height);
+                            this.setDisplaySize(width, height);
+                        }
+                    }
+
+                    const platforms = this.physics.add.group();
+                    log(`   Group created`);
+
+                    const platform3 = new Platform3(this, 100, 400, 200, 30);
+                    log(`   Platform3 created`);
+
+                    platforms.add(platform3);
+                    log(`   Platform3 added to group - SUCCESS!`);
+                } catch (e) {
+                    log(`   FAILED: ${e.message}`);
+                    log(`   Stack: ${e.stack}`);
+                }
+            }
+        }
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            backgroundColor: '#87CEEB',
+            parent: 'game-container',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 1000 },
+                    debug: true
+                }
+            },
+            scene: TestScene
+        };
+
+        const game = new Phaser.Game(config);
+    </script>
+</body>
+</html>
