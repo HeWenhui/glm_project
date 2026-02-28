@@ -5,6 +5,7 @@ import Enemy from '../components/Enemy.js';
 import LevelManager from '../managers/LevelManager.js';
 import SaveManager from '../managers/SaveManager.js';
 import AudioManager from '../managers/AudioManager.js';
+import ParticleSystem from '../components/ParticleSystem.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -15,6 +16,7 @@ export default class GameScene extends Phaser.Scene {
         this.player = null;
         this.levelManager = null;
         this.audioManager = null;
+        this.particleSystem = null;
         this.score = 0;
         this.health = 3;
     }
@@ -35,6 +37,7 @@ export default class GameScene extends Phaser.Scene {
         this.player = new Player(this, 100, 400);
         this.levelManager = new LevelManager(this);
         this.audioManager = new AudioManager(this);
+        this.particleSystem = new ParticleSystem(this);
 
         this.setupCollisions();
 
@@ -73,6 +76,7 @@ export default class GameScene extends Phaser.Scene {
             enemy.destroy();
             this.score += 50;
             this.audioManager.playEnemyHit();
+            this.particleSystem.createExplosion(enemy.x, enemy.y);
             this.updateUI();
         } else {
             player.takeDamage(1);
@@ -92,6 +96,7 @@ export default class GameScene extends Phaser.Scene {
         const result = item.collect();
         this.score += result.value;
         this.audioManager.playCoin();
+        this.particleSystem.createCollectEffect(item.x, item.y);
         this.updateUI();
     }
 

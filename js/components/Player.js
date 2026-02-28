@@ -70,6 +70,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
 
         if (Phaser.Input.Keyboard.JustDown(this.jumpKey)) {
             if (this.body.touching.down) {
+                this.scene.particleSystem?.createJumpDust(this.x, this.y + 24);
                 this.body.setVelocityY(this.jumpForce);
                 this.jumping = true;
                 this.canDoubleJump = true;
