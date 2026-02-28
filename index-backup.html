@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平台跳跃游戏</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        #game-container {
+            border: 2px solid #333;
+        }
+        #game-debug-log {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 350px;
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            z-index: 9999;
+            border: 1px solid #444;
+            display: none;
+        }
+        #game-debug-log.visible {
+            display: block;
+        }
+    </style>
+    <script>
+        // 切换调试日志显示
+        window.toggleDebugLog = function() {
+            const logDiv = document.getElementById('game-debug-log');
+            logDiv.classList.toggle('visible');
+        };
+</head>
+<body>
+    <div id="game-container"></div>
+
+    <script>
+        // 实时调试 - 重写console方法
+        (function() {
+            const originalLog = console.log;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+
+            const logToElement = function(method, args) {
+                const logDiv = document.getElementById('game-debug-log');
+                if (logDiv) {
+                    const time = new Date().toLocaleTimeString();
+                    const msg = args.join(' ');
+                    logDiv.innerHTML += `<div style="margin: 2px 0; padding: 2px 5px; background: rgba(0,0,0,0.7); border-radius: 3px; font-family: monospace; font-size: 12px; border-left: 3px solid ${method === 'error' ? '#f44' : method === 'warn' ? '#fa0' : '#4a0'}">[${time}] [${method.toUpperCase()}] ${msg}</div>`;
+                    logDiv.scrollTop = logDiv.scrollHeight;
+                }
+                originalLog.apply(console, [msg]);
+            };
+
+            console.log = function(...args) { logToElement('log', args); };
+            console.error = function(...args) { logToElement('error', args); };
+            console.warn = function(...args) { logToElement('warn', args); };
+
+            window.addEventListener('error', function(e) {
+                console.error(`全局错误: ${e.message}`, `位置: ${e.filename}:${e.lineno}`, e.error);
+                if (e.error && e.error.stack) {
+                    console.error('堆栈:', e.error.stack);
+                }
+            });
+
+            window.addEventListener('unhandledrejection', function(e) {
+                console.error('未处理的Promise: ${e.reason}`);
+            });
+        })();
+
+        window.gameDebugLog = [];
+        window.captureGameLog = function(type, ...args) {
+            window.gameDebugLog.push({ time: Date.now(), type, args: args.join(' ') });
+            console[type](...args);
+
+            // 同时写入调试日志容器
+            const logDiv = document.getElementById('game-debug-log');
+            if (logDiv) {
+                const time = new Date().toLocaleTimeString();
+                const msg = args.join(' ');
+                const typeColor = type === 'error' ? '#f44' : type === 'warn' ? '#fa0' : '#4a0';
+                const typeLabel = `[${type.toUpperCase()}]`;
+                logDiv.innerHTML += `<div style="margin: 2px 0; padding: 4px 6px; background: rgba(0,0,0,0.1); border-left: 3px solid ${typeColor}; font-size: 11px; border-radius: 2px;">
+                    <span style="color: #888; font-size: 10px;">${time}</span>
+                    <strong style="color: ${typeColor}; margin-left: 8px;">${typeLabel}</strong>
+                    <span style="color: #ddd;">${msg}</span>
+                </div>`;
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+        };
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
