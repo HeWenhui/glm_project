@@ -3,6 +3,7 @@ import Platform from '../components/Platform.js';
 import Collectible from '../components/Collectible.js';
 import Enemy from '../components/Enemy.js';
 import LevelManager from '../managers/LevelManager.js';
+import SaveManager from '../managers/SaveManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -14,6 +15,12 @@ export default class GameScene extends Phaser.Scene {
         this.levelManager = null;
         this.score = 0;
         this.health = 3;
+    }
+
+    init(data) {
+        if (data && data.loadGame && data.saveData) {
+            this.loadGameData = data.saveData;
+        }
     }
 
     create() {
@@ -28,10 +35,26 @@ export default class GameScene extends Phaser.Scene {
 
         this.setupCollisions();
 
-        this.levelManager.loadLevel(1);
+        if (this.loadGameData) {
+            this.score = this.loadGameData.highScore || 0;
+            this.levelManager.currentLevel = this.loadGameData.currentLevel || 1;
+            this.levelManager.loadLevel(this.levelManager.currentLevel);
+        } else {
+            this.levelManager.loadLevel(1);
+        }
 
         this.scene.events.on('player-damaged', this.takeDamage, this);
         this.scene.launch('UIScene');
+    }
+
+    completeLevel() {
+        const saveData = {
+            currentLevel: this.levelManager.currentLevel,
+            highScore: this.score,
+            unlockedLevels: this.levelManager.currentLevel
+        };
+
+        SaveManager.saveGame(saveData);
     }
 
     setupCollisions() {
