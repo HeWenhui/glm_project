@@ -4,6 +4,7 @@ import Collectible from '../components/Collectible.js';
 import Enemy from '../components/Enemy.js';
 import LevelManager from '../managers/LevelManager.js';
 import SaveManager from '../managers/SaveManager.js';
+import AudioManager from '../managers/AudioManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -13,6 +14,7 @@ export default class GameScene extends Phaser.Scene {
         this.enemies = null;
         this.player = null;
         this.levelManager = null;
+        this.audioManager = null;
         this.score = 0;
         this.health = 3;
     }
@@ -32,6 +34,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.player = new Player(this, 100, 400);
         this.levelManager = new LevelManager(this);
+        this.audioManager = new AudioManager(this);
 
         this.setupCollisions();
 
@@ -45,6 +48,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.scene.events.on('player-damaged', this.takeDamage, this);
         this.scene.launch('UIScene');
+        this.audioManager.playBackgroundMusic();
     }
 
     completeLevel() {
@@ -68,6 +72,7 @@ export default class GameScene extends Phaser.Scene {
         if (player.body.touching.down && player.body.velocity.y > 0) {
             enemy.destroy();
             this.score += 50;
+            this.audioManager.playEnemyHit();
             this.updateUI();
         } else {
             player.takeDamage(1);
@@ -86,6 +91,7 @@ export default class GameScene extends Phaser.Scene {
     collectItem(player, item) {
         const result = item.collect();
         this.score += result.value;
+        this.audioManager.playCoin();
         this.updateUI();
     }
 

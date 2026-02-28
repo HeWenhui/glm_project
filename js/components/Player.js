@@ -74,6 +74,7 @@ export default class Player extends Phaser.GameObjects.Sprite {
                 this.jumping = true;
                 this.canDoubleJump = true;
                 this.play('jump', true);
+                this.scene.audioManager?.playJump();
             } else if (this.canDoubleJump) {
                 this.body.setVelocityY(this.jumpForce * 0.8);
                 this.canDoubleJump = false;
