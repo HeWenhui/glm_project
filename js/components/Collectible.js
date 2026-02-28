@@ -1,6 +1,6 @@
 export default class Collectible extends Phaser.GameObjects.Sprite {
     constructor(scene, x, y, type = 'coin') {
-        super(scene, x, y, 'coin');
+        super(scene, x, y, type);
         scene.add.existing(this);
         scene.physics.add.existing(this);
 
@@ -24,15 +24,17 @@ export default class Collectible extends Phaser.GameObjects.Sprite {
     }
 
     createAnimations() {
-        if (!this.scene.anims.exists('coin-spin')) {
+        const animKey = `${this.type}-spin`;
+
+        if (!this.scene.anims.exists(animKey)) {
             this.scene.anims.create({
-                key: 'coin-spin',
-                frames: this.scene.anims.generateFrameNumbers('coin', { start: 0, end: 3 }),
+                key: animKey,
+                frames: this.scene.anims.generateFrameNumbers(this.type, { start: 0, end: 3 }),
                 frameRate: 8,
                 repeat: -1
             });
         }
-        this.play('coin-spin');
+        this.play(animKey);
     }
 
     collect() {

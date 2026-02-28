@@ -36,6 +36,17 @@ export default class BootScene extends Phaser.Scene {
             frameHeight: 20
         });
 
+        // 加载gem和heart sprites（使用coin sprite作为占位）
+        this.load.spritesheet('gem', 'assets/sprites/coin.png', {
+            frameWidth: 20,
+            frameHeight: 20
+        });
+
+        this.load.spritesheet('heart', 'assets/sprites/coin.png', {
+            frameWidth: 20,
+            frameHeight: 20
+        });
+
         // 加载粒子资源
         this.load.image('particle', 'assets/sprites/particle.png');
         this.load.image('spark', 'assets/sprites/spark.png');
