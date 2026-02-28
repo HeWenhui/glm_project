@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>零依赖测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        #test-result {
+            text-align: center;
+            padding: 20px;
+        }
+        h1 { color: #4CAF50; font-size: 48px; margin-bottom: 30px; }
+        .success { color: #81C784; font-size: 24px; }
+        .error { color: #F44336; font-size: 24px; }
+        .info { color: #2196F3; font-size: 18px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div id="test-result">
+        <h1>✓ 如果看到这行字</h1>
+        <div class="info">
+            基础HTML/CSS正常工作<br><br>
+            浏览器可以显示内容<br><br>
+            JavaScript基本执行正常
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            document.getElementById('test-result').innerHTML =
+                '<h1 class="success">✓ 测试成功！</h1>' +
+                '<div class="info">HTML加载正常<br>JavaScript运行正常</div>';
+
+            console.log('✓ 零依赖测试成功');
+            console.log('✓ 基础功能正常');
+        };
+
+        window.onerror = function(msg, url, line, col, error) {
+            document.getElementById('test-result').innerHTML =
+                '<h1 class="error">❌ JavaScript错误</h1>' +
+                '<div class="info">错误: ' + msg + '<br>位置: ' + url + ':' + line + '</div>';
+
+            console.error('JavaScript Error:', msg);
+            console.error('URL:', url);
+            console.error('Line:', line);
+            console.error('Column:', col);
+            console.error('Error:', error);
+        };
+    </script>
+</body>
+</html>
